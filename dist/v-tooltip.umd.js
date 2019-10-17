@@ -55,20 +55,35 @@
     return obj;
   }
 
-  function _objectSpread(target) {
+  function ownKeys(object, enumerableOnly) {
+    var keys = Object.keys(object);
+
+    if (Object.getOwnPropertySymbols) {
+      var symbols = Object.getOwnPropertySymbols(object);
+      if (enumerableOnly) symbols = symbols.filter(function (sym) {
+        return Object.getOwnPropertyDescriptor(object, sym).enumerable;
+      });
+      keys.push.apply(keys, symbols);
+    }
+
+    return keys;
+  }
+
+  function _objectSpread2(target) {
     for (var i = 1; i < arguments.length; i++) {
       var source = arguments[i] != null ? arguments[i] : {};
-      var ownKeys = Object.keys(source);
 
-      if (typeof Object.getOwnPropertySymbols === 'function') {
-        ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) {
-          return Object.getOwnPropertyDescriptor(source, sym).enumerable;
-        }));
+      if (i % 2) {
+        ownKeys(source, true).forEach(function (key) {
+          _defineProperty(target, key, source[key]);
+        });
+      } else if (Object.getOwnPropertyDescriptors) {
+        Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
+      } else {
+        ownKeys(source).forEach(function (key) {
+          Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
+        });
       }
-
-      ownKeys.forEach(function (key) {
-        _defineProperty(target, key, source[key]);
-      });
     }
 
     return target;
@@ -76,7 +91,7 @@
 
   /**!
    * @fileOverview Kickass library to create and place poppers near their reference elements.
-   * @version 1.15.0
+   * @version 1.16.0
    * @license
    * Copyright (c) 2016 Federico Zivolo and contributors
    *
@@ -98,16 +113,17 @@
    * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
    * SOFTWARE.
    */
-  var isBrowser = typeof window !== 'undefined' && typeof document !== 'undefined';
+  var isBrowser = typeof window !== 'undefined' && typeof document !== 'undefined' && typeof navigator !== 'undefined';
 
-  var longerTimeoutBrowsers = ['Edge', 'Trident', 'Firefox'];
-  var timeoutDuration = 0;
-  for (var i = 0; i < longerTimeoutBrowsers.length; i += 1) {
-    if (isBrowser && navigator.userAgent.indexOf(longerTimeoutBrowsers[i]) >= 0) {
-      timeoutDuration = 1;
-      break;
+  var timeoutDuration = function () {
+    var longerTimeoutBrowsers = ['Edge', 'Trident', 'Firefox'];
+    for (var i = 0; i < longerTimeoutBrowsers.length; i += 1) {
+      if (isBrowser && navigator.userAgent.indexOf(longerTimeoutBrowsers[i]) >= 0) {
+        return 1;
+      }
     }
-  }
+    return 0;
+  }();
 
   function microtaskDebounce(fn) {
     var called = false;
@@ -225,6 +241,17 @@
     }
 
     return getScrollParent(getParentNode(element));
+  }
+
+  /**
+   * Returns the reference node of the reference object, or the reference object itself.
+   * @method
+   * @memberof Popper.Utils
+   * @param {Element|Object} reference - the reference element (the popper will be relative to this)
+   * @returns {Element} parent
+   */
+  function getReferenceNode(reference) {
+    return reference && reference.referenceNode ? reference.referenceNode : reference;
   }
 
   var isIE11 = isBrowser && !!(window.MSInputMethodContext && document.documentMode);
@@ -535,8 +562,8 @@
 
     // subtract scrollbar size from sizes
     var sizes = element.nodeName === 'HTML' ? getWindowSizes(element.ownerDocument) : {};
-    var width = sizes.width || element.clientWidth || result.right - result.left;
-    var height = sizes.height || element.clientHeight || result.bottom - result.top;
+    var width = sizes.width || element.clientWidth || result.width;
+    var height = sizes.height || element.clientHeight || result.height;
 
     var horizScrollbar = element.offsetWidth - width;
     var vertScrollbar = element.offsetHeight - height;
@@ -688,7 +715,7 @@
     // NOTE: 1 DOM access here
 
     var boundaries = { top: 0, left: 0 };
-    var offsetParent = fixedPosition ? getFixedPositionOffsetParent(popper) : findCommonOffsetParent(popper, reference);
+    var offsetParent = fixedPosition ? getFixedPositionOffsetParent(popper) : findCommonOffsetParent(popper, getReferenceNode(reference));
 
     // Handle viewport case
     if (boundariesElement === 'viewport') {
@@ -816,7 +843,7 @@
   function getReferenceOffsets(state, popper, reference) {
     var fixedPosition = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
 
-    var commonOffsetParent = fixedPosition ? getFixedPositionOffsetParent(popper) : findCommonOffsetParent(popper, reference);
+    var commonOffsetParent = fixedPosition ? getFixedPositionOffsetParent(popper) : findCommonOffsetParent(popper, getReferenceNode(reference));
     return getOffsetRectRelativeToArbitraryNode(reference, commonOffsetParent, fixedPosition);
   }
 
@@ -1078,7 +1105,7 @@
 
     this.disableEventListeners();
 
-    // remove the popper if user explicity asked for the deletion on destroy
+    // remove the popper if user explicitly asked for the deletion on destroy
     // do not use `remove` because IE11 doesn't support it
     if (this.options.removeOnDestroy) {
       this.popper.parentNode.removeChild(this.popper);
@@ -2847,7 +2874,7 @@
       });
 
       // apply user options over default ones
-      _options = _objectSpread({}, DEFAULT_OPTIONS, _options);
+      _options = _objectSpread2({}, DEFAULT_OPTIONS, {}, _options);
       _reference.jquery && (_reference = _reference[0]);
       this.show = this.show.bind(this);
       this.hide = this.hide.bind(this); // cache reference and options
@@ -3155,11 +3182,11 @@
 
         this._append(tooltipNode, container);
 
-        var popperOptions = _objectSpread({}, options.popperOptions, {
+        var popperOptions = _objectSpread2({}, options.popperOptions, {
           placement: options.placement
         });
 
-        popperOptions.modifiers = _objectSpread({}, popperOptions.modifiers, {
+        popperOptions.modifiers = _objectSpread2({}, popperOptions.modifiers, {
           arrow: {
             element: this.options.arrowSelector
           }
@@ -3556,7 +3583,7 @@
       hideOnTargetClick: typeof options.hideOnTargetClick !== 'undefined' ? options.hideOnTargetClick : directive.options.defaultHideOnTargetClick,
       loadingClass: typeof options.loadingClass !== 'undefined' ? options.loadingClass : directive.options.defaultLoadingClass,
       loadingContent: typeof options.loadingContent !== 'undefined' ? options.loadingContent : directive.options.defaultLoadingContent,
-      popperOptions: _objectSpread({}, typeof options.popperOptions !== 'undefined' ? options.popperOptions : directive.options.defaultPopperOptions)
+      popperOptions: _objectSpread2({}, typeof options.popperOptions !== 'undefined' ? options.popperOptions : directive.options.defaultPopperOptions)
     };
 
     if (result.offset) {
@@ -3612,9 +3639,9 @@
     var content = getContent(value);
     var classes = typeof value.classes !== 'undefined' ? value.classes : directive.options.defaultClass;
 
-    var opts = _objectSpread({
+    var opts = _objectSpread2({
       title: content
-    }, getOptions(_objectSpread({}, value, {
+    }, getOptions(_objectSpread2({}, value, {
       placement: getPlacement(value, modifiers)
     })));
 
@@ -3640,10 +3667,24 @@
       delete el._tooltipTargetClasses;
     }
   }
-  function bind(el, _ref) {
+
+  function manualShow(el, _ref) {
     var value = _ref.value,
         oldValue = _ref.oldValue,
         modifiers = _ref.modifiers;
+
+    if (typeof value.show !== 'undefined' && value.show !== el._tooltipOldShow) {
+      el._tooltipOldShow = value.show;
+      value.show ? el._tooltip.show() : el._tooltip.hide();
+    }
+  }
+
+  function bind(el, _ref2) {
+    var value = _ref2.value,
+        oldValue = _ref2.oldValue,
+        modifiers = _ref2.modifiers,
+        _ref2$show = _ref2.show,
+        show = _ref2$show === void 0 ? false : _ref2$show;
     var content = getContent(value);
 
     if (!content || !state.enabled) {
@@ -3656,24 +3697,40 @@
 
         tooltip.setContent(content); // Options
 
-        tooltip.setOptions(_objectSpread({}, value, {
+        tooltip.setOptions(_objectSpread2({}, value, {
           placement: getPlacement(value, modifiers)
         }));
       } else {
         tooltip = createTooltip(el, value, modifiers);
-      } // Manual show
+      }
 
-
-      if (typeof value.show !== 'undefined' && value.show !== el._tooltipOldShow) {
-        el._tooltipOldShow = value.show;
-        value.show ? tooltip.show() : tooltip.hide();
+      if (show) {
+        manualShow(el, {
+          value: value,
+          oldValue: oldValue,
+          modifiers: modifiers
+        });
       }
     }
   }
+
+  function update$1(el, _ref3) {
+    var value = _ref3.value,
+        oldValue = _ref3.oldValue,
+        modifiers = _ref3.modifiers;
+    bind(el, {
+      value: value,
+      oldValue: oldValue,
+      modifiers: modifiers,
+      show: true
+    });
+  }
+
   var directive = {
     options: defaultOptions,
+    inserted: manualShow,
     bind: bind,
-    update: bind,
+    update: update$1,
     unbind: function unbind(el) {
       destroyTooltip(el);
     }
@@ -4174,25 +4231,25 @@
         }
 
         if (!this.popperInstance) {
-          var popperOptions = _objectSpread({}, this.popperOptions, {
+          var popperOptions = _objectSpread2({}, this.popperOptions, {
             placement: this.placement
           });
 
-          popperOptions.modifiers = _objectSpread({}, popperOptions.modifiers, {
-            arrow: _objectSpread({}, popperOptions.modifiers && popperOptions.modifiers.arrow, {
+          popperOptions.modifiers = _objectSpread2({}, popperOptions.modifiers, {
+            arrow: _objectSpread2({}, popperOptions.modifiers && popperOptions.modifiers.arrow, {
               element: this.$refs.arrow
             })
           });
 
           if (this.offset) {
             var offset = this.$_getOffset();
-            popperOptions.modifiers.offset = _objectSpread({}, popperOptions.modifiers && popperOptions.modifiers.offset, {
+            popperOptions.modifiers.offset = _objectSpread2({}, popperOptions.modifiers && popperOptions.modifiers.offset, {
               offset: offset
             });
           }
 
           if (this.boundariesElement) {
-            popperOptions.modifiers.preventOverflow = _objectSpread({}, popperOptions.modifiers && popperOptions.modifiers.preventOverflow, {
+            popperOptions.modifiers.preventOverflow = _objectSpread2({}, popperOptions.modifiers && popperOptions.modifiers.preventOverflow, {
               boundariesElement: this.boundariesElement
             });
           }
@@ -5721,7 +5778,7 @@
 
   var _cloneBuffer = createCommonjsModule(function (module, exports) {
   /** Detect free variable `exports`. */
-  var freeExports = exports && !exports.nodeType && exports;
+  var freeExports =  exports && !exports.nodeType && exports;
 
   /** Detect free variable `module`. */
   var freeModule = freeExports && 'object' == 'object' && module && !module.nodeType && module;
@@ -6121,7 +6178,7 @@
 
   var isBuffer_1 = createCommonjsModule(function (module, exports) {
   /** Detect free variable `exports`. */
-  var freeExports = exports && !exports.nodeType && exports;
+  var freeExports =  exports && !exports.nodeType && exports;
 
   /** Detect free variable `module`. */
   var freeModule = freeExports && 'object' == 'object' && module && !module.nodeType && module;
@@ -6290,7 +6347,7 @@
 
   var _nodeUtil = createCommonjsModule(function (module, exports) {
   /** Detect free variable `exports`. */
-  var freeExports = exports && !exports.nodeType && exports;
+  var freeExports =  exports && !exports.nodeType && exports;
 
   /** Detect free variable `module`. */
   var freeModule = freeExports && 'object' == 'object' && module && !module.nodeType && module;
@@ -6344,7 +6401,7 @@
   var isTypedArray_1 = isTypedArray;
 
   /**
-   * Gets the value at `key`, unless `key` is "__proto__".
+   * Gets the value at `key`, unless `key` is "__proto__" or "constructor".
    *
    * @private
    * @param {Object} object The object to query.
@@ -6352,6 +6409,10 @@
    * @returns {*} Returns the property value.
    */
   function safeGet(object, key) {
+    if (key === 'constructor' && typeof object[key] === 'function') {
+      return;
+    }
+
     if (key == '__proto__') {
       return;
     }
@@ -6720,8 +6781,8 @@
       return;
     }
     _baseFor(source, function(srcValue, key) {
+      stack || (stack = new _Stack);
       if (isObject_1(srcValue)) {
-        stack || (stack = new _Stack);
         _baseMergeDeep(object, source, key, srcIndex, baseMerge, customizer, stack);
       }
       else {

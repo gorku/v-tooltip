@@ -32,7 +32,8 @@ export const defaultOptions = {
   // Default HTML template of the tooltip element
   // It must include `tooltip-arrow` & `tooltip-inner` CSS classes (can be configured, see below)
   // Change if the classes conflict with other libraries (for example bootstrap)
-  defaultTemplate: '<div class="tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>',
+  defaultTemplate:
+    '<div class="tooltip" role="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>',
   // Selector used to get the arrow element in the tooltip template
   defaultArrowSelector: '.tooltip-arrow, .tooltip__arrow',
   // Selector used to get the inner content element in the tooltip template
@@ -87,22 +88,66 @@ export const defaultOptions = {
 
 export function getOptions (options) {
   const result = {
-    placement: typeof options.placement !== 'undefined' ? options.placement : directive.options.defaultPlacement,
-    delay: typeof options.delay !== 'undefined' ? options.delay : directive.options.defaultDelay,
-    html: typeof options.html !== 'undefined' ? options.html : directive.options.defaultHtml,
-    template: typeof options.template !== 'undefined' ? options.template : directive.options.defaultTemplate,
-    arrowSelector: typeof options.arrowSelector !== 'undefined' ? options.arrowSelector : directive.options.defaultArrowSelector,
-    innerSelector: typeof options.innerSelector !== 'undefined' ? options.innerSelector : directive.options.defaultInnerSelector,
-    trigger: typeof options.trigger !== 'undefined' ? options.trigger : directive.options.defaultTrigger,
-    offset: typeof options.offset !== 'undefined' ? options.offset : directive.options.defaultOffset,
-    container: typeof options.container !== 'undefined' ? options.container : directive.options.defaultContainer,
-    boundariesElement: typeof options.boundariesElement !== 'undefined' ? options.boundariesElement : directive.options.defaultBoundariesElement,
-    autoHide: typeof options.autoHide !== 'undefined' ? options.autoHide : directive.options.autoHide,
-    hideOnTargetClick: typeof options.hideOnTargetClick !== 'undefined' ? options.hideOnTargetClick : directive.options.defaultHideOnTargetClick,
-    loadingClass: typeof options.loadingClass !== 'undefined' ? options.loadingClass : directive.options.defaultLoadingClass,
-    loadingContent: typeof options.loadingContent !== 'undefined' ? options.loadingContent : directive.options.defaultLoadingContent,
+    placement:
+      typeof options.placement !== 'undefined'
+        ? options.placement
+        : directive.options.defaultPlacement,
+    delay:
+      typeof options.delay !== 'undefined'
+        ? options.delay
+        : directive.options.defaultDelay,
+    html:
+      typeof options.html !== 'undefined'
+        ? options.html
+        : directive.options.defaultHtml,
+    template:
+      typeof options.template !== 'undefined'
+        ? options.template
+        : directive.options.defaultTemplate,
+    arrowSelector:
+      typeof options.arrowSelector !== 'undefined'
+        ? options.arrowSelector
+        : directive.options.defaultArrowSelector,
+    innerSelector:
+      typeof options.innerSelector !== 'undefined'
+        ? options.innerSelector
+        : directive.options.defaultInnerSelector,
+    trigger:
+      typeof options.trigger !== 'undefined'
+        ? options.trigger
+        : directive.options.defaultTrigger,
+    offset:
+      typeof options.offset !== 'undefined'
+        ? options.offset
+        : directive.options.defaultOffset,
+    container:
+      typeof options.container !== 'undefined'
+        ? options.container
+        : directive.options.defaultContainer,
+    boundariesElement:
+      typeof options.boundariesElement !== 'undefined'
+        ? options.boundariesElement
+        : directive.options.defaultBoundariesElement,
+    autoHide:
+      typeof options.autoHide !== 'undefined'
+        ? options.autoHide
+        : directive.options.autoHide,
+    hideOnTargetClick:
+      typeof options.hideOnTargetClick !== 'undefined'
+        ? options.hideOnTargetClick
+        : directive.options.defaultHideOnTargetClick,
+    loadingClass:
+      typeof options.loadingClass !== 'undefined'
+        ? options.loadingClass
+        : directive.options.defaultLoadingClass,
+    loadingContent:
+      typeof options.loadingContent !== 'undefined'
+        ? options.loadingContent
+        : directive.options.defaultLoadingContent,
     popperOptions: {
-      ...(typeof options.popperOptions !== 'undefined' ? options.popperOptions : directive.options.defaultPopperOptions),
+      ...(typeof options.popperOptions !== 'undefined'
+        ? options.popperOptions
+        : directive.options.defaultPopperOptions),
     },
   }
 
@@ -111,7 +156,10 @@ export function getOptions (options) {
     let offset = result.offset
 
     // One value -> switch
-    if (typeofOffset === 'number' || (typeofOffset === 'string' && offset.indexOf(',') === -1)) {
+    if (
+      typeofOffset === 'number' ||
+      (typeofOffset === 'string' && offset.indexOf(',') === -1)
+    ) {
       offset = `0, ${offset}`
     }
 
@@ -154,7 +202,10 @@ export function getContent (value) {
 
 export function createTooltip (el, value, modifiers = {}) {
   const content = getContent(value)
-  let classes = typeof value.classes !== 'undefined' ? value.classes : directive.options.defaultClass
+  let classes =
+    typeof value.classes !== 'undefined'
+      ? value.classes
+      : directive.options.defaultClass
   const opts = {
     title: content,
     ...getOptions({
@@ -162,12 +213,15 @@ export function createTooltip (el, value, modifiers = {}) {
       placement: getPlacement(value, modifiers),
     }),
   }
-  const tooltip = el._tooltip = new Tooltip(el, opts)
+  const tooltip = (el._tooltip = new Tooltip(el, opts))
   tooltip.setClasses(classes)
   tooltip._vueEl = el
 
   // Class on target
-  const targetClasses = typeof value.targetClasses !== 'undefined' ? value.targetClasses : directive.options.defaultTargetClass
+  const targetClasses =
+    typeof value.targetClasses !== 'undefined'
+      ? value.targetClasses
+      : directive.options.defaultTargetClass
   el._tooltipTargetClasses = targetClasses
   addClasses(el, targetClasses)
 
@@ -187,7 +241,14 @@ export function destroyTooltip (el) {
   }
 }
 
-export function bind (el, { value, oldValue, modifiers }) {
+function manualShow (el, { value, oldValue, modifiers }) {
+  if (typeof value.show !== 'undefined' && value.show !== el._tooltipOldShow) {
+    el._tooltipOldShow = value.show
+    value.show ? el._tooltip.show() : el._tooltip.hide()
+  }
+}
+
+export function bind (el, { value, oldValue, modifiers, show = false }) {
   const content = getContent(value)
   if (!content || !state.enabled) {
     destroyTooltip(el)
@@ -206,18 +267,21 @@ export function bind (el, { value, oldValue, modifiers }) {
       tooltip = createTooltip(el, value, modifiers)
     }
 
-    // Manual show
-    if (typeof value.show !== 'undefined' && value.show !== el._tooltipOldShow) {
-      el._tooltipOldShow = value.show
-      value.show ? tooltip.show() : tooltip.hide()
+    if (show) {
+      manualShow(el, { value, oldValue, modifiers })
     }
   }
 }
 
+function update (el, { value, oldValue, modifiers }) {
+  bind(el, { value, oldValue, modifiers, show: true })
+}
+
 export const directive = {
   options: defaultOptions,
+  inserted: manualShow,
   bind,
-  update: bind,
+  update,
   unbind (el) {
     destroyTooltip(el)
   },

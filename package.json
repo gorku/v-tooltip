@@ -4,7 +4,7 @@
   "description": "Easy tooltips with Vue 2.x",
   "author": "Guillaume Chau <guillaume.b.chau@gmail.com>",
   "scripts": {
-    "build": "NODE_ENV=production npm run build:browser && npm run build:es && npm run build:umd",
+    "build": "cross-env NODE_ENV=production npm run build:browser && npm run build:es && npm run build:umd",
     "test": "npm run test:unit",
     "build:browser": "rollup --config build/rollup.config.browser.js",
     "build:es": "rollup --config build/rollup.config.es.js",
