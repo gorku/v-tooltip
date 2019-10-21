@@ -21,7 +21,16 @@
         <h2>Reactive content</h2>
         <input class="tooltip-content" v-model="msg" placeholder="Tooltip content" />
 
-        <button class="tooltip-target" title="This is a button" v-tooltip.top-center="msg">Hover me</button>
+        <button class="tooltip-target" title="This is a button" v-tooltip.top-center="{ content: msg, container: '.section-content' }">Hover me</button>
+      </div>
+    </section>
+
+    <section class="demo">
+      <div class="section-content">
+        <h2>Reactive content</h2>
+        <input class="tooltip-content" v-model="msg" placeholder="Tooltip content" />
+
+        <button class="tooltip-target" title="This is a button" v-tooltip.top-center="{ content: msg, container: '.section-content' }">Hover me</button>
       </div>
     </section>
 

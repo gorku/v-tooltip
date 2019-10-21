@@ -296,7 +296,7 @@ export default class Tooltip {
 
   _show (reference, options) {
     if (options && typeof options.container === 'string') {
-      const container = document.querySelector(options.container)
+      const container = reference.closest(options.container)
       if (!container) return
     }
 
@@ -493,7 +493,7 @@ export default class Tooltip {
     // if container is a query, get the relative element
 
     if (typeof container === 'string') {
-      container = window.document.querySelector(container)
+      container = reference.closest(container)
     } else if (container === false) {
       // if container is `false`, set it to reference parent
       container = reference.parentNode

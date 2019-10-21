@@ -3113,7 +3113,7 @@
       key: "_show",
       value: function _show(reference, options) {
         if (options && typeof options.container === 'string') {
-          var container = document.querySelector(options.container);
+          var container = reference.closest(options.container);
           if (!container) return;
         }
 
@@ -3330,7 +3330,7 @@
       value: function _findContainer(container, reference) {
         // if container is a query, get the relative element
         if (typeof container === 'string') {
-          container = window.document.querySelector(container);
+          container = reference.closest(container);
         } else if (container === false) {
           // if container is `false`, set it to reference parent
           container = reference.parentNode;
